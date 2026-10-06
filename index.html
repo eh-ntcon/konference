@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>XPartners Konference</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<style>
+  :root {
+    --red: #EF3A3F; --navy: #111947; --blue: #5B8DD6; --bg: #FBEDEC;
+    --card: #fff; --text: #1a1a1a; --muted: #6b6b6b; --line: #f0dcdc;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: "Open Sans", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text);
+    display: flex; flex-direction: column; min-height: 100dvh;
+  }
+  header {
+    background: #fff; border-bottom: 1px solid var(--line);
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) 20px 12px;
+    position: sticky; top: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  header img { height: 22px; width: auto; display: block; }
+  header .date { font-size: 12px; color: var(--muted); font-weight: 600; }
+  main { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; }
+  section { display: none; max-width: 900px; margin: 0 auto; }
+  section.active { display: block; }
+  .pad { padding: 24px 20px 12px; }
+  h1 { margin: 0 0 4px; font-size: 30px; font-weight: 300; color: var(--red); line-height: 1.15; }
+  h2 { margin: 0 0 6px; font-size: 26px; font-weight: 300; color: var(--red); line-height: 1.15; }
+  p.lead { color: var(--muted); margin: 0 0 16px; font-size: 15px; }
+  .card { background: var(--card); border-radius: 14px; padding: 18px; margin: 0 20px 16px; }
+  .form-wrap iframe { width: 100%; min-height: 1600px; border: 0; background: #fff; border-radius: 14px; display: block; }
+  .notice { background: #fff; border-radius: 14px; padding: 16px; font-size: 14px; margin: 0 20px; }
+  .notice code { background: var(--bg); padding: 1px 5px; border-radius: 4px; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .seat-form { display: flex; gap: 8px; }
+  .seat-form input { flex: 1; font: inherit; font-size: 16px; padding: 12px 14px; border: 1px solid #e5cfcf; border-radius: 10px; background: #fff; }
+  .seat-form button { font: inherit; font-weight: 600; background: var(--red); color: #fff; border: 0; border-radius: 10px; padding: 12px 18px; cursor: pointer; }
+  .seat-result { margin-top: 20px; text-align: center; }
+  .seat-result .big { font-size: 64px; font-weight: 700; color: var(--navy); line-height: 1; }
+  .seat-result .lbl { color: var(--muted); font-size: 14px; margin-bottom: 6px; }
+  .seat-result .err { color: var(--red); font-size: 15px; }
+  .pill { display: inline-block; background: var(--navy); color: #fff; border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+  /* Indholdssider: dokumentet vises som en almindelig side, ingen ramme eller PDF-signaler */
+  .doc { background: #fff; min-height: 100%; }
+  section:has(.doc) { min-height: 100%; background: #fff; }
+  .doc canvas { display: block; width: 100%; height: auto; }
+  .doc .loading { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
+  nav {
+    display: flex; background: #fff; border-top: 1px solid var(--line);
+    padding-bottom: var(--safe-b); position: sticky; bottom: 0; z-index: 5;
+  }
+  nav button {
+    flex: 1; background: none; border: 0; padding: 9px 4px 6px; cursor: pointer;
+    color: var(--muted); font-size: 11px; font-family: inherit;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+  nav button svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  nav button.active { color: var(--red); font-weight: 600; }
+  #install-banner {
+    display: none; background: var(--navy); color: #fff; padding: 10px 20px; font-size: 14px; align-items: center; gap: 10px;
+  }
+  #install-banner button {
+    margin-left: auto; background: var(--red); color: #fff; border: 0; border-radius: 999px;
+    padding: 7px 14px; font-weight: 600; font-family: inherit; font-size: 13px; cursor: pointer;
+  }
+  @media (min-width: 700px) { nav button { font-size: 13px; } h1 { font-size: 38px; } h2 { font-size: 32px; } }
+</style>
+</head>
+<body>
+<header>
+  <img id="logo" src="logo.png" alt="XPartners">
+  <span class="date" id="app-subtitle"></span>
+</header>
+
+<div id="install-banner">
+  <span>Læg appen på din hjemmeskærm</span>
+  <button id="install-btn">Installér</button>
+</div>
+
+<main>
+  <!-- TILMELDING -->
+  <section id="tab-tilmelding" class="active">
+    <div class="pad">
+      <h1 id="app-title">Konference</h1>
+      <p class="lead">Tilmeld dig herunder – det tager under et minut.</p>
+    </div>
+    <div id="form-area" class="form-wrap" style="padding: 0 20px 20px"></div>
+  </section>
+
+  <!-- DAGSORDEN -->
+  <section id="tab-dagsorden">
+    <div class="doc" data-pdf="dagsorden"></div>
+  </section>
+
+  <!-- INFO -->
+  <section id="tab-info">
+    <div class="doc" data-pdf="info"></div>
+  </section>
+
+  <!-- MENU -->
+  <section id="tab-menu">
+    <div class="doc" data-pdf="menu"></div>
+  </section>
+
+  <!-- MIN PLADS -->
+  <section id="tab-plads">
+    <div class="pad">
+      <h2>Min plads</h2>
+      <p class="lead" id="seat-lead">Skriv dit navn, så finder vi dit bord.</p>
+    </div>
+    <div class="card">
+      <form class="seat-form" id="seat-form">
+        <input id="seat-name" type="text" placeholder="Fornavn Efternavn" autocomplete="name" required>
+        <button type="submit">Find</button>
+      </form>
+      <div class="seat-result" id="seat-result"></div>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button data-tab="tilmelding" class="active">
+    <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    Tilmelding
+  </button>
+  <button data-tab="dagsorden">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    Dagsorden
+  </button>
+  <button data-tab="info">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    Info
+  </button>
+  <button data-tab="menu">
+    <svg viewBox="0 0 24 24"><path d="M3 11h18M12 3c4 3 4 5 4 8H8c0-3 0-5 4-8zM5 15h14l-1 5H6z"/></svg>
+    Menu
+  </button>
+  <button data-tab="plads">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg>
+    Min plads
+  </button>
+</nav>
+
+<script type="module">
+  const C = window.APP_CONFIG || {};
+  const R = document.documentElement.style;
+  if (C.colorRed)  R.setProperty('--red', C.colorRed);
+  if (C.colorNavy) R.setProperty('--navy', C.colorNavy);
+  if (C.colorBlue) R.setProperty('--blue', C.colorBlue);
+  if (C.colorBg)   R.setProperty('--bg', C.colorBg);
+  document.title = C.title || 'Konference';
+  document.getElementById('app-title').textContent = C.title || 'Konference';
+  document.getElementById('app-subtitle').textContent = C.subtitle || '';
+  if (C.logo) document.getElementById('logo').src = C.logo;
+
+  // ---- Tilmelding (Google Forms)
+  const formArea = document.getElementById('form-area');
+  if (C.formUrl) {
+    let url = C.formUrl.trim();
+    if (url.includes('/viewform') && !url.includes('embedded=true')) url += (url.includes('?') ? '&' : '?') + 'embedded=true';
+    const plain = url.replace(/[?&]embedded=true/, '');
+    formArea.innerHTML = `<iframe src="${url}" loading="lazy" title="Tilmelding">Indlæser…</iframe>
+      <p class="muted">Kan du ikke se formularen? <a href="${plain}" target="_blank" rel="noopener">Åbn den her</a>.</p>`;
+  } else {
+    formArea.innerHTML = `<div class="notice" style="margin:0"><strong>Formularen er ikke sat op endnu.</strong><br>
+      Indsæt adressen på din Google Form i <code>config.js</code> under <code>formUrl</code>.</div>`;
+  }
+
+  // ---- Indholdssider (PDF gengives som almindelige sider)
+  const pdfjs = await import('./lib/pdf.min.mjs');
+  pdfjs.GlobalWorkerOptions.workerSrc = './lib/pdf.worker.min.mjs';
+  const rendered = new Set();
+
+  async function renderDoc(key) {
+    if (rendered.has(key)) return;
+    rendered.add(key);
+    const box = document.querySelector(`.doc[data-pdf="${key}"]`);
+    const url = (C.pdfs || {})[key] || `pdf/${key}.pdf`;
+    box.innerHTML = '<p class="loading">Indlæser…</p>';
+    try {
+      const doc = await pdfjs.getDocument(url + '?v=' + Date.now()).promise;
+      box.innerHTML = '';
+      const width = box.clientWidth;
+      for (let n = 1; n <= doc.numPages; n++) {
+        const page = await doc.getPage(n);
+        const base = page.getViewport({ scale: 1 });
+        const scale = (width / base.width) * Math.min(window.devicePixelRatio || 1, 3);
+        const vp = page.getViewport({ scale });
+        const canvas = document.createElement('canvas');
+        canvas.width = vp.width; canvas.height = vp.height;
+        box.appendChild(canvas);
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+      }
+    } catch (e) {
+      box.innerHTML = `<div class="pad"><p class="lead">Indholdet kunne ikke hentes lige nu. <a href="${url}">Prøv igen</a>.</p></div>`;
+      rendered.delete(key);
+    }
+  }
+
+  // ---- Min plads (opslag i Google Sheet via Apps Script)
+  const seatForm = document.getElementById('seat-form'), seatRes = document.getElementById('seat-result');
+  if (!C.seatingUrl) {
+    document.getElementById('seat-lead').textContent = C.seatingClosedText || 'Bordplanen offentliggøres på dagen.';
+    seatForm.style.display = 'none';
+  }
+  seatForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const navn = document.getElementById('seat-name').value.trim();
+    seatRes.innerHTML = '<p class="muted">Søger…</p>';
+    try {
+      const r = await fetch(`${C.seatingUrl}?key=${encodeURIComponent(C.seatingKey || '')}&navn=${encodeURIComponent(navn)}`);
+      const d = await r.json();
+      if (d.fejl) seatRes.innerHTML = `<p class="err">${d.fejl}</p>`;
+      else if (!d.bord) seatRes.innerHTML = `<p class="err">Hej ${d.navn} – din plads er ikke fordelt endnu. Prøv igen senere.</p>`;
+      else seatRes.innerHTML = `<div class="lbl">${d.navn}, du sidder ved</div><div class="big">Bord ${d.bord}</div>`;
+      try { localStorage.setItem('seatName', navn); } catch {}
+    } catch { seatRes.innerHTML = '<p class="err">Kunne ikke hente din plads. Tjek din forbindelse og prøv igen.</p>'; }
+  });
+  try { const saved = localStorage.getItem('seatName'); if (saved) document.getElementById('seat-name').value = saved; } catch {}
+
+  // ---- Faner
+  const buttons = document.querySelectorAll('nav button');
+  function show(tab) {
+    document.querySelectorAll('section').forEach(s => s.classList.toggle('active', s.id === 'tab-' + tab));
+    buttons.forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelector('main').scrollTop = 0;
+    if (['dagsorden', 'info', 'menu'].includes(tab)) renderDoc(tab);
+    history.replaceState(null, '', '#' + tab);
+  }
+  buttons.forEach(b => b.addEventListener('click', () => show(b.dataset.tab)));
+  const start = location.hash.replace('#', '');
+  if (['dagsorden', 'info', 'menu', 'plads'].includes(start)) show(start);
+
+  // ---- Installér-knap (Android/Chrome). iOS: Del → "Føj til hjemmeskærm".
+  let deferred;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); deferred = e;
+    document.getElementById('install-banner').style.display = 'flex';
+  });
+  document.getElementById('install-btn').addEventListener('click', async () => {
+    if (!deferred) return;
+    deferred.prompt(); await deferred.userChoice; deferred = null;
+    document.getElementById('install-banner').style.display = 'none';
+  });
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
